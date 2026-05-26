@@ -1,0 +1,891 @@
+```html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manz AI Studio & Assistant</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome untuk Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.5);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(156, 163, 175, 0.8);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+
+    <!-- Header / Navigasi -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-4 py-4 sm:px-8">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-2xl shadow-lg shadow-indigo-500/20">
+                    <i class="fa-solid fa-wand-magic-sparkles text-xl text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-white via-indigo-200 to-purple-400 bg-clip-text text-transparent">Manz AI Studio</h1>
+                    <p class="text-xs text-slate-400">Asisten Pintar, Desainer Gambar & Generator Suara</p>
+                </div>
+            </div>
+            <!-- Tab Buttons -->
+            <div class="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800/80 w-full sm:w-auto">
+                <button onclick="switchTab('chat')" id="tab-chat" class="tab-btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 bg-indigo-600 text-white shadow-md shadow-indigo-600/10">
+                    <i class="fa-solid fa-comments"></i> Chat AI
+                </button>
+                <button onclick="switchTab('image')" id="tab-image" class="tab-btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-image"></i> Gambar AI
+                </button>
+                <button onclick="switchTab('tts')" id="tab-tts" class="tab-btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-volume-high"></i> Suara AI
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-8 flex flex-col">
+        
+        <!-- 1. CHAT TAB -->
+        <section id="panel-chat" class="tab-panel flex flex-col flex-grow bg-slate-950 rounded-2xl border border-slate-800/85 overflow-hidden shadow-2xl h-[calc(100vh-12rem)] min-h-[500px]">
+            <!-- Chat Header -->
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/40">
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-slate-950 rounded-full animate-pulse"></span>
+                        <div class="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center text-indigo-400">
+                            <i class="fa-solid fa-robot text-lg"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h2 class="font-semibold text-sm sm:text-base">Manz AI Assistant</h2>
+                        <p class="text-xs text-slate-400">Siap membantu menulis, menganalisis, atau berdiskusi</p>
+                    </div>
+                </div>
+                <button onclick="clearChat()" class="text-xs text-slate-400 hover:text-rose-400 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-rose-500/10">
+                    <i class="fa-solid fa-trash-can"></i> Bersihkan Obrolan
+                </button>
+            </div>
+
+            <!-- Chat Messages -->
+            <div id="chat-messages" class="flex-grow overflow-y-auto p-4 sm:p-6 space-y-4 flex flex-col justify-start">
+                <!-- Welcome Message -->
+                <div class="max-w-[85%] self-start flex gap-3 items-start">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+                        <i class="fa-solid fa-robot text-sm"></i>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl rounded-tl-none">
+                        <p class="text-sm leading-relaxed text-slate-200">
+                            Halo! Saya adalah asisten kecerdasan buatan Anda di **Manz AI Studio**. Tanyakan apa saja yang ingin Anda ketahui, atau minta saya membantu menyusun ide, membuat program, maupun merangkum artikel. Bagaimana saya bisa membantu Anda hari ini?
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Input Form -->
+            <form id="chat-form" onsubmit="handleChatSubmit(event)" class="p-4 border-t border-slate-800 bg-slate-900/40">
+                <div class="flex gap-2 items-center">
+                    <input type="text" id="chat-input" placeholder="Ketik pesan Anda di sini..." class="flex-grow bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-500" required autocomplete="off">
+                    <button type="submit" id="chat-send-btn" class="bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white w-11 h-11 rounded-xl flex items-center justify-center transition-all shadow-lg shadow-indigo-600/20 shrink-0">
+                        <i id="chat-send-icon" class="fa-solid fa-paper-plane text-sm"></i>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- 2. IMAGE GENERATION TAB -->
+        <section id="panel-image" class="tab-panel hidden grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow">
+            <!-- Left Side: Prompt Controls -->
+            <div class="lg:col-span-5 bg-slate-950 rounded-2xl border border-slate-800/85 p-5 sm:p-6 flex flex-col justify-between h-fit gap-6">
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="p-2 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-xl">
+                            <i class="fa-solid fa-wand-magic"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-lg text-slate-100">AI Gambar (Imagen 4.0)</h2>
+                            <p class="text-xs text-slate-400">Deskripsikan gambar impian Anda menjadi nyata</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Prompt Deskripsi Gambar</label>
+                            <textarea id="image-prompt" rows="5" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-sm text-slate-200 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder:text-slate-500 resize-none" placeholder="Contoh: A futuristic cyberpunk cafe in Neo-Jakarta with rain falling outside, neon signs in Indonesian, cinematic lighting, ultra detailed, photorealistic..."></textarea>
+                        </div>
+
+                        <!-- Template Prompt -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Inspirasi Cepat</label>
+                            <div class="flex flex-wrap gap-2">
+                                <button onclick="applyImageTemplate('Lukisan cat air pemandangan desa di pegunungan Jawa yang tenang pada pagi hari, kabut tipis')" class="text-xs bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-1.5 rounded-lg transition-colors">🏞️ Desa Jawa Cat Air</button>
+                                <button onclick="applyImageTemplate('A cute 3D Pixar-style orange cat wearing an astronaut suit on Mars, digital art, vibrant colors, 4k')" class="text-xs bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-1.5 rounded-lg transition-colors">🐱 Kucing Astronaut</button>
+                                <button onclick="applyImageTemplate('Cyberpunk vintage Indonesian train station in 2077 with glowing energy holograms, hyper-detailed')" class="text-xs bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-1.5 rounded-lg transition-colors">🚉 Stasiun 2077</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="generateImage()" id="gen-image-btn" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium py-3 rounded-xl transition-all shadow-lg shadow-purple-600/10 flex items-center justify-center gap-2 mt-4">
+                    <i class="fa-solid fa-palette"></i> Buat Gambar Sekarang
+                </button>
+            </div>
+
+            <!-- Right Side: Output Viewer -->
+            <div class="lg:col-span-7 bg-slate-950 rounded-2xl border border-slate-800/85 p-6 flex flex-col items-center justify-center min-h-[350px] relative overflow-hidden">
+                <div id="image-placeholder" class="text-center p-8 space-y-4">
+                    <div class="w-16 h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 mx-auto text-2xl">
+                        <i class="fa-regular fa-image"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-medium text-slate-300">Belum Ada Gambar</h3>
+                        <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">Tuliskan deskripsi gambar di sebelah kiri lalu klik tombol "Buat Gambar" untuk memvisualisasikan imajinasi Anda.</p>
+                    </div>
+                </div>
+
+                <!-- Loader -->
+                <div id="image-loader" class="hidden flex flex-col items-center gap-4 py-12">
+                    <div class="relative w-16 h-16">
+                        <div class="absolute inset-0 rounded-full border-4 border-purple-500/20"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-t-purple-500 animate-spin"></div>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-sm font-semibold text-purple-400">Sedang melukis...</p>
+                        <p class="text-xs text-slate-500 mt-1">Menggunakan Imagen 4.0 AI Premium</p>
+                    </div>
+                </div>
+
+                <!-- Result Container -->
+                <div id="image-result-container" class="hidden w-full h-full flex flex-col items-center gap-4">
+                    <div class="relative group rounded-xl overflow-hidden border border-slate-800 shadow-xl bg-slate-900 max-h-[480px]">
+                        <img id="image-result" src="" alt="AI Generated Artwork" class="object-contain w-full h-full max-h-[420px]">
+                    </div>
+                    <div class="flex gap-3 w-full max-w-sm">
+                        <button onclick="downloadImage()" class="flex-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 text-sm py-2 px-4 rounded-xl transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-download"></i> Unduh Gambar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. TEXT TO SPEECH (TTS) TAB -->
+        <section id="panel-tts" class="tab-panel hidden grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow">
+            <!-- Left Side: Voice Settings -->
+            <div class="lg:col-span-5 bg-slate-950 rounded-2xl border border-slate-800/85 p-5 sm:p-6 flex flex-col justify-between h-fit gap-6">
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="p-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl">
+                            <i class="fa-solid fa-microphone-lines"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-lg text-slate-100">AI Suara (Text-to-Speech)</h2>
+                            <p class="text-xs text-slate-400">Ubah tulisan menjadi suara jernih dan berkarakter</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Teks yang akan Diucapkan</label>
+                            <textarea id="tts-text" rows="5" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder:text-slate-500 resize-none" placeholder="Masukkan kalimat yang ingin diubah menjadi suara di sini..."></textarea>
+                        </div>
+
+                        <!-- Voice Options -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Karakter Pengisi Suara (Voice)</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-800 bg-slate-900/50 cursor-pointer hover:bg-slate-900 transition-colors">
+                                    <input type="radio" name="tts-voice" value="Kore" checked class="accent-emerald-500">
+                                    <div class="text-xs">
+                                        <p class="font-semibold text-slate-200">Kore</p>
+                                        <p class="text-[10px] text-slate-400">Lembut & Kalem</p>
+                                    </div>
+                                </label>
+                                <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-800 bg-slate-900/50 cursor-pointer hover:bg-slate-900 transition-colors">
+                                    <input type="radio" name="tts-voice" value="Puck" class="accent-emerald-500">
+                                    <div class="text-xs">
+                                        <p class="font-semibold text-slate-200">Puck</p>
+                                        <p class="text-[10px] text-slate-400">Energetik & Ceria</p>
+                                    </div>
+                                </label>
+                                <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-800 bg-slate-900/50 cursor-pointer hover:bg-slate-900 transition-colors">
+                                    <input type="radio" name="tts-voice" value="Charon" class="accent-emerald-500">
+                                    <div class="text-xs">
+                                        <p class="font-semibold text-slate-200">Charon</p>
+                                        <p class="text-[10px] text-slate-400">Wibawa & Hangat</p>
+                                    </div>
+                                </label>
+                                <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-800 bg-slate-900/50 cursor-pointer hover:bg-slate-900 transition-colors">
+                                    <input type="radio" name="tts-voice" value="Fenrir" class="accent-emerald-500">
+                                    <div class="text-xs">
+                                        <p class="font-semibold text-slate-200">Fenrir</p>
+                                        <p class="text-[10px] text-slate-400">Misterius & Dalam</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Style Control via Instruction -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Gaya Berbicara (Opsional)</label>
+                            <select id="tts-style" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                                <option value="Bicara dengan nada ceria dan ramah">Ceria & Ramah</option>
+                                <option value="Bicara dengan nada serius, berwibawa dan penuh penekanan">Serius & Berwibawa</option>
+                                <option value="Bicara dengan nada berbisik dan lembut">Berbisik & Lembut</option>
+                                <option value="Bicara dengan nada sangat antusias dan berenergi tinggi">Sangat Antusias / Heboh</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="generateAudio()" id="gen-tts-btn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-3 rounded-xl transition-all shadow-lg shadow-emerald-600/10 flex items-center justify-center gap-2 mt-4">
+                    <i class="fa-solid fa-play"></i> Sintesis Suara AI
+                </button>
+            </div>
+
+            <!-- Right Side: Audio Output Viewer -->
+            <div class="lg:col-span-7 bg-slate-950 rounded-2xl border border-slate-800/85 p-6 flex flex-col items-center justify-center min-h-[350px] relative">
+                <div id="tts-placeholder" class="text-center p-8 space-y-4">
+                    <div class="w-16 h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 mx-auto text-2xl">
+                        <i class="fa-solid fa-waveform"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-medium text-slate-300">Belum Ada Audio</h3>
+                        <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">Ketik teks lalu pilih karakter suara di sebelah kiri untuk menghasilkan suara audio realistis.</p>
+                    </div>
+                </div>
+
+                <!-- Loader -->
+                <div id="tts-loader" class="hidden flex flex-col items-center gap-4 py-12">
+                    <div class="relative w-16 h-16">
+                        <div class="absolute inset-0 rounded-full border-4 border-emerald-500/20"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-t-emerald-500 animate-spin"></div>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-sm font-semibold text-emerald-400">Sedang menyusun suara...</p>
+                        <p class="text-xs text-slate-500 mt-1">Mengonversi teks ke audio WAV</p>
+                    </div>
+                </div>
+
+                <!-- Result Container -->
+                <div id="tts-result-container" class="hidden w-full max-w-md flex flex-col gap-6 items-center">
+                    <div class="w-20 h-20 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400 text-3xl animate-pulse">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </div>
+                    
+                    <div class="text-center">
+                        <h3 class="font-semibold text-lg text-slate-200">Suara Anda Siap!</h3>
+                        <p id="tts-meta-info" class="text-xs text-slate-400 mt-1">Karakter: Kore | Gaya: Normal</p>
+                    </div>
+
+                    <!-- Custom HTML Audio Player UI -->
+                    <audio id="tts-audio-element" class="hidden"></audio>
+                    <div class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center gap-4">
+                        <button onclick="toggleAudioPlay()" id="audio-play-btn" class="w-12 h-12 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 flex items-center justify-center text-lg transition-all shadow-md active:scale-95">
+                            <i id="audio-play-icon" class="fa-solid fa-play"></i>
+                        </button>
+                        <div class="flex-grow">
+                            <!-- Progress Bar -->
+                            <div onclick="seekAudio(event)" id="audio-timeline" class="h-2 bg-slate-800 rounded-full overflow-hidden cursor-pointer relative">
+                                <div id="audio-progress" class="h-full bg-emerald-500 w-0 transition-all duration-100"></div>
+                            </div>
+                            <div class="flex justify-between text-[10px] text-slate-400 mt-1.5 font-mono">
+                                <span id="audio-curr-time">00:00</span>
+                                <span id="audio-duration">00:00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3 w-full">
+                        <button onclick="downloadAudio()" class="flex-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 text-sm py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-download"></i> Simpan File Audio
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 py-4 text-center text-xs text-slate-500 bg-slate-950/50">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <p>&copy; 2026 Manz AI Studio. Semua Hak Cipta Dilindungi.</p>
+            <p class="flex items-center gap-1.5">
+                <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> 
+                Sistem Terhubung ke Gemini API
+            </p>
+        </div>
+    </footer>
+
+    <!-- JS Logic -->
+    <script>
+        // API KEY (Disediakan saat runtime)
+        const apiKey = ""; 
+
+        // Fungsi Exponential Backoff untuk menangani pemanggilan API secara aman
+        async function fetchWithRetry(url, options, maxRetries = 5) {
+            let delay = 1000; // Mulai dari 1 detik
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) {
+                        return await response.json();
+                    }
+                    // Jika terkena limit (Rate Limit) atau masalah server, retry
+                    if (response.status === 429 || (response.status >= 500 && response.status < 600)) {
+                        throw new Error(`Server returned status ${response.status}`);
+                    }
+                    // Kegagalan permanen lain langsung lempar error
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.error?.message || `API error dengan status ${response.status}`);
+                } catch (error) {
+                    if (i === maxRetries - 1) throw error; // Lempar jika batas limit habis
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2; // Naikkan delay secara eksponensial (1s, 2s, 4s, 8s, 16s)
+                }
+            }
+        }
+
+        // TAB SWITCHING LOGIC
+        function switchTab(tabId) {
+            // Sembunyikan semua panel
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.add('hidden');
+            });
+            // Hapus style aktif dari semua tombol
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 text-slate-400 hover:text-white";
+            });
+
+            // Tampilkan panel yang dipilih
+            document.getElementById(`panel-${tabId}`).classList.remove('hidden');
+            
+            // Set warna tombol aktif sesuai kategori tab
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            let activeClass = "bg-indigo-600 text-white shadow-md shadow-indigo-600/10";
+            if (tabId === 'image') activeClass = "bg-purple-600 text-white shadow-md shadow-purple-600/10";
+            if (tabId === 'tts') activeClass = "bg-emerald-600 text-white shadow-md shadow-emerald-600/10";
+
+            activeBtn.className = `tab-btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${activeClass}`;
+        }
+
+        // ==========================================
+        // 1. CHAT ASSISTANT LOGIC
+        // ==========================================
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const chatForm = document.getElementById('chat-form');
+        const chatSendBtn = document.getElementById('chat-send-btn');
+        const chatSendIcon = document.getElementById('chat-send-icon');
+
+        async function handleChatSubmit(e) {
+            e.preventDefault();
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // Tambah pesan user ke UI
+            appendChatMessage(message, 'user');
+            chatInput.value = '';
+
+            // Set loading state
+            setChatLoading(true);
+
+            try {
+                // Endpoint untuk gemini-2.5-flash-preview-09-2025
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                
+                // Siapkan instruksi sistem agar asisten selalu merespons ramah dalam Bahasa Indonesia
+                const payload = {
+                    contents: [{ parts: [{ text: message }] }],
+                    systemInstruction: { 
+                        parts: [{ text: "Anda adalah asisten AI ramah bernama 'Manz AI Studio Assistant'. Selalu bantu dan respons user dalam Bahasa Indonesia dengan format yang rapi dan informatif." }] 
+                    }
+                };
+
+                const data = await fetchWithRetry(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, saya tidak dapat memahami permintaan tersebut.";
+                appendChatMessage(aiText, 'ai');
+
+            } catch (error) {
+                console.error(error);
+                appendChatMessage(`⚠️ Gagal menghubungi AI: ${error.message}. Silakan coba beberapa saat lagi.`, 'system-error');
+            } finally {
+                setChatLoading(false);
+            }
+        }
+
+        function appendChatMessage(text, sender) {
+            const wrapper = document.createElement('div');
+            wrapper.className = "max-w-[85%] flex gap-3 items-start animate-fade-in";
+            
+            if (sender === 'user') {
+                wrapper.classList.add('self-end', 'flex-row-reverse');
+                wrapper.innerHTML = `
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shrink-0">
+                        <i class="fa-solid fa-user text-sm"></i>
+                    </div>
+                    <div class="bg-indigo-600/10 border border-indigo-500/20 p-4 rounded-2xl rounded-tr-none text-slate-100 text-sm whitespace-pre-line">
+                        ${escapeHtml(text)}
+                    </div>
+                `;
+            } else if (sender === 'ai') {
+                wrapper.classList.add('self-start');
+                wrapper.innerHTML = `
+                    <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+                        <i class="fa-solid fa-robot text-sm"></i>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl rounded-tl-none text-slate-200 text-sm leading-relaxed prose prose-invert max-w-none">
+                        ${formatMarkdown(text)}
+                    </div>
+                `;
+            } else if (sender === 'system-error') {
+                wrapper.classList.add('self-center', 'max-w-full');
+                wrapper.innerHTML = `
+                    <div class="bg-rose-500/10 border border-rose-500/20 text-rose-400 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>${text}</span>
+                    </div>
+                `;
+            }
+
+            chatMessages.appendChild(wrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function setChatLoading(isLoading) {
+            if (isLoading) {
+                chatInput.disabled = true;
+                chatSendBtn.disabled = true;
+                chatSendIcon.className = "fa-solid fa-circle-notch animate-spin text-sm";
+            } else {
+                chatInput.disabled = false;
+                chatSendBtn.disabled = false;
+                chatSendIcon.className = "fa-solid fa-paper-plane text-sm";
+                chatInput.focus();
+            }
+        }
+
+        function clearChat() {
+            chatMessages.innerHTML = `
+                <div class="max-w-[85%] self-start flex gap-3 items-start">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+                        <i class="fa-solid fa-robot text-sm"></i>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl rounded-tl-none">
+                        <p class="text-sm leading-relaxed text-slate-200">
+                            Pesan telah dibersihkan. Ada hal lain yang bisa saya bantu sekarang?
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==========================================
+        // 2. IMAGE GENERATOR LOGIC (Imagen 4.0)
+        // ==========================================
+        const imagePromptInput = document.getElementById('image-prompt');
+        const imgPlaceholder = document.getElementById('image-placeholder');
+        const imgLoader = document.getElementById('image-loader');
+        const imgResultContainer = document.getElementById('image-result-container');
+        const imgResult = document.getElementById('image-result');
+        const genImageBtn = document.getElementById('gen-image-btn');
+
+        function applyImageTemplate(promptText) {
+            imagePromptInput.value = promptText;
+        }
+
+        async function generateImage() {
+            const prompt = imagePromptInput.value.trim();
+            if (!prompt) {
+                alertToast("Tulis deskripsi gambar terlebih dahulu!", "warning");
+                return;
+            }
+
+            // Sembunyikan panel hasil lama, tampilkan loader
+            imgPlaceholder.classList.add('hidden');
+            imgResultContainer.classList.add('hidden');
+            imgLoader.classList.remove('hidden');
+            
+            genImageBtn.disabled = true;
+            genImageBtn.classList.add('opacity-70', 'cursor-not-allowed');
+
+            try {
+                // Endpoint Imagen 4.0
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
+                
+                const payload = {
+                    instances: { prompt: prompt },
+                    parameters: { sampleCount: 1 }
+                };
+
+                const data = await fetchWithRetry(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (data.predictions && data.predictions[0]?.bytesBase64Encoded) {
+                    const base64Data = data.predictions[0].bytesBase64Encoded;
+                    imgResult.src = `data:image/png;base64,${base64Data}`;
+                    
+                    // Sembunyikan loader, tampilkan gambar hasil
+                    imgLoader.classList.add('hidden');
+                    imgResultContainer.classList.remove('hidden');
+                    alertToast("Gambar berhasil dibuat!", "success");
+                } else {
+                    throw new Error("Format respons gambar tidak valid dari AI.");
+                }
+
+            } catch (error) {
+                console.error(error);
+                imgLoader.classList.add('hidden');
+                imgPlaceholder.classList.remove('hidden');
+                alertToast(`Gagal membuat gambar: ${error.message}`, "error");
+            } finally {
+                genImageBtn.disabled = false;
+                genImageBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+            }
+        }
+
+        function downloadImage() {
+            if (!imgResult.src) return;
+            const link = document.createElement('a');
+            link.href = imgResult.src;
+            link.download = `AI-Artwork-${Date.now()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // ==========================================
+        // 3. TEXT-TO-SPEECH (TTS) LOGIC (Gemini TTS)
+        // ==========================================
+        const ttsTextInput = document.getElementById('tts-text');
+        const ttsPlaceholder = document.getElementById('tts-placeholder');
+        const ttsLoader = document.getElementById('tts-loader');
+        const ttsResultContainer = document.getElementById('tts-result-container');
+        const ttsAudioElement = document.getElementById('tts-audio-element');
+        const genTtsBtn = document.getElementById('gen-tts-btn');
+        const audioPlayBtn = document.getElementById('audio-play-btn');
+        const audioPlayIcon = document.getElementById('audio-play-icon');
+        const audioProgress = document.getElementById('audio-progress');
+        const audioCurrTime = document.getElementById('audio-curr-time');
+        const audioDuration = document.getElementById('audio-duration');
+        const audioTimeline = document.getElementById('audio-timeline');
+
+        let audioBlobUrl = null;
+
+        async function generateAudio() {
+            const text = ttsTextInput.value.trim();
+            if (!text) {
+                alertToast("Ketik teks yang ingin diubah ke suara!", "warning");
+                return;
+            }
+
+            const voiceElement = document.querySelector('input[name="tts-voice"]:checked');
+            const voiceName = voiceElement ? voiceElement.value : "Kore";
+            const styleText = document.getElementById('tts-style').value;
+
+            // Sembunyikan panel hasil lama, tampilkan loader
+            ttsPlaceholder.classList.add('hidden');
+            ttsResultContainer.classList.add('hidden');
+            ttsLoader.classList.remove('hidden');
+
+            genTtsBtn.disabled = true;
+            genTtsBtn.classList.add('opacity-70', 'cursor-not-allowed');
+
+            try {
+                // Endpoint Gemini TTS
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+                
+                const promptPayload = `Say: "${text}". Instruction: ${styleText}`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: promptPayload }] }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: {
+                            voiceConfig: {
+                                prebuiltVoiceConfig: { voiceName: voiceName }
+                            }
+                        }
+                    },
+                    model: "gemini-2.5-flash-preview-tts"
+                };
+
+                const data = await fetchWithRetry(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const inlineData = data.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+                if (inlineData && inlineData.data) {
+                    const rawBase64 = inlineData.data;
+                    const mimeType = inlineData.mimeType || "audio/L16;rate=24000";
+                    
+                    // Ekstrak Sample Rate dari mimeType (contoh: "audio/L16;rate=24000")
+                    let sampleRate = 24000; // default
+                    const rateMatch = mimeType.match(/rate=(\d+)/);
+                    if (rateMatch) {
+                        sampleRate = parseInt(rateMatch[1], 10);
+                    }
+
+                    // Konversi Base64 PCM ke ArrayBuffer
+                    const binaryString = atob(rawBase64);
+                    const len = binaryString.length;
+                    const bytes = new Uint8Array(len);
+                    for (let i = 0; i < len; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    
+                    // Ubah PCM 16-bit ke format WAV agar bisa diputar di web browser
+                    const wavBuffer = convertPCMToWAV(bytes.buffer, sampleRate);
+                    const blob = new Blob([wavBuffer], { type: 'audio/wav' });
+                    
+                    // Bersihkan BlobUrl lama jika ada
+                    if (audioBlobUrl) URL.revokeObjectURL(audioBlobUrl);
+
+                    audioBlobUrl = URL.createObjectURL(blob);
+                    ttsAudioElement.src = audioBlobUrl;
+
+                    // Update UI Info
+                    document.getElementById('tts-meta-info').innerText = `Karakter: ${voiceName} | Gaya: ${document.getElementById('tts-style').options[document.getElementById('tts-style').selectedIndex].text}`;
+
+                    // Tampilkan player
+                    ttsLoader.classList.add('hidden');
+                    ttsResultContainer.classList.remove('hidden');
+
+                    // Setup audio player event listeners
+                    setupAudioPlayerEvents();
+                    alertToast("Audio suara AI berhasil dibuat!", "success");
+
+                } else {
+                    throw new Error("Gagal memperoleh data audio dari API.");
+                }
+
+            } catch (error) {
+                console.error(error);
+                ttsLoader.classList.add('hidden');
+                ttsPlaceholder.classList.remove('hidden');
+                alertToast(`Gagal memproses suara: ${error.message}`, "error");
+            } finally {
+                genTtsBtn.disabled = false;
+                genTtsBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+            }
+        }
+
+        // FUNGSI KONVERSI PCM 16-BIT KE WAV
+        function convertPCMToWAV(pcmBuffer, sampleRate) {
+            const pcmData = new Int16Array(pcmBuffer);
+            const numChannels = 1; // Mono
+            const bytesPerSample = 2; // 16-bit
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataSize = pcmData.length * bytesPerSample;
+            const wavSize = 44 + dataSize;
+            
+            const buffer = new ArrayBuffer(wavSize);
+            const view = new DataView(buffer);
+
+            /* RIFF identifier */
+            writeString(view, 0, 'RIFF');
+            /* file length */
+            view.setUint32(4, wavSize - 8, true);
+            /* RIFF type */
+            writeString(view, 8, 'WAVE');
+            /* format chunk identifier */
+            writeString(view, 12, 'fmt ');
+            /* format chunk length */
+            view.setUint32(16, 16, true);
+            /* sample format (raw) */
+            view.setUint16(20, 1, true); // Linear PCM
+            /* channel count */
+            view.setUint16(22, numChannels, true);
+            /* sample rate */
+            view.setUint32(24, sampleRate, true);
+            /* byte rate (sample rate * block align) */
+            view.setUint32(28, byteRate, true);
+            /* block align (channel count * bytes per sample) */
+            view.setUint16(32, blockAlign, true);
+            /* bits per sample */
+            view.setUint16(34, 16, true);
+            /* data chunk identifier */
+            writeString(view, 36, 'data');
+            /* data chunk length */
+            view.setUint32(40, dataSize, true);
+
+            // Tulis sampel data PCM
+            let offset = 44;
+            for (let i = 0; i < pcmData.length; i++) {
+                view.setInt16(offset, pcmData[i], true);
+                offset += 2;
+            }
+
+            return buffer;
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
+        // CUSTOM AUDIO CONTROLLER FUNCTIONS
+        function setupAudioPlayerEvents() {
+            ttsAudioElement.addEventListener('timeupdate', () => {
+                if (ttsAudioElement.duration) {
+                    const progressPercent = (ttsAudioElement.currentTime / ttsAudioElement.duration) * 100;
+                    audioProgress.style.width = `${progressPercent}%`;
+                    audioCurrTime.innerText = formatTime(ttsAudioElement.currentTime);
+                    audioDuration.innerText = formatTime(ttsAudioElement.duration);
+                }
+            });
+
+            ttsAudioElement.addEventListener('loadedmetadata', () => {
+                audioDuration.innerText = formatTime(ttsAudioElement.duration);
+            });
+
+            ttsAudioElement.addEventListener('ended', () => {
+                audioPlayIcon.className = "fa-solid fa-play";
+                audioProgress.style.width = "0%";
+                audioCurrTime.innerText = "00:00";
+            });
+        }
+
+        function toggleAudioPlay() {
+            if (ttsAudioElement.paused) {
+                ttsAudioElement.play();
+                audioPlayIcon.className = "fa-solid fa-pause";
+            } else {
+                ttsAudioElement.pause();
+                audioPlayIcon.className = "fa-solid fa-play";
+            }
+        }
+
+        function seekAudio(e) {
+            const rect = audioTimeline.getBoundingClientRect();
+            const posX = e.clientX - rect.left;
+            const totalWidth = rect.width;
+            const percentage = posX / totalWidth;
+            if (ttsAudioElement.duration) {
+                ttsAudioElement.currentTime = percentage * ttsAudioElement.duration;
+            }
+        }
+
+        function downloadAudio() {
+            if (!audioBlobUrl) return;
+            const link = document.createElement('a');
+            link.href = audioBlobUrl;
+            link.download = `AI-Voice-${Date.now()}.wav`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // ==========================================
+        // UTILITIES / HELPERS
+        // ==========================================
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "00:00";
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Markdown Formatter sederhana untuk respon Chat agar terlihat cantik
+        function formatMarkdown(text) {
+            let html = escapeHtml(text);
+            
+            // Format Bold (**teks**)
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // Format List Item (* item)
+            html = html.replace(/^\s*\*\s+(.*?)$/gm, '<li class="ml-4 list-disc">$1</li>');
+            
+            // Format Code Block
+            html = html.replace(/```([\s\S]*?)```/g, '<pre class="bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-xs overflow-x-auto my-2 text-indigo-300">$1</pre>');
+            
+            // Format Inline Code
+            html = html.replace(/`(.*?)`/g, '<code class="bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800 text-indigo-300 font-mono text-xs">$1</code>');
+            
+            return html;
+        }
+
+        // Custom Toast Alert pengganti Window Alert
+        function alertToast(message, type = "info") {
+            const toast = document.createElement('div');
+            toast.className = "fixed bottom-6 right-6 z-50 p-4 rounded-xl shadow-2xl border flex items-center gap-3 transition-all transform translate-y-10 opacity-0 duration-300 max-w-sm";
+            
+            if (type === "success") {
+                toast.classList.add('bg-emerald-950', 'border-emerald-500/20', 'text-emerald-300');
+                toast.innerHTML = `<i class="fa-solid fa-circle-check text-lg text-emerald-500"></i><span>${message}</span>`;
+            } else if (type === "error") {
+                toast.classList.add('bg-rose-950', 'border-rose-500/20', 'text-rose-300');
+                toast.innerHTML = `<i class="fa-solid fa-circle-exclamation text-lg text-rose-500"></i><span>${message}</span>`;
+            } else if (type === "warning") {
+                toast.classList.add('bg-amber-950', 'border-amber-500/20', 'text-amber-300');
+                toast.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-lg text-amber-500"></i><span>${message}</span>`;
+            } else {
+                toast.classList.add('bg-slate-950', 'border-slate-800', 'text-slate-200');
+                toast.innerHTML = `<i class="fa-solid fa-circle-info text-lg text-indigo-400"></i><span>${message}</span>`;
+            }
+
+            document.body.appendChild(toast);
+            
+            // Animate In
+            setTimeout(() => {
+                toast.classList.remove('translate-y-10', 'opacity-0');
+            }, 10);
+
+            // Animate Out & Destroy
+            setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 4000);
+        }
+
+        // Jalankan inisialisasi pada awal pemuatan halaman
+        window.onload = function() {
+            // Set fokus awal ke input chat
+            chatInput.focus();
+        }
+    </script>
+</body>
+</html>
+
+```
